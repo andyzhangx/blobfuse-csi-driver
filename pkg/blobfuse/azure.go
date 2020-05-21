@@ -43,8 +43,11 @@ var (
 // GetCloudProvider get Azure Cloud Provider
 func GetCloudProvider(kubeconfig string) (*azureprovider.Cloud, error) {
 	kubeClient, err := getKubeClient(kubeconfig)
-	if err != nil && !os.IsNotExist(err) && err != rest.ErrNotInCluster {
-		return nil, fmt.Errorf("failed to get KubeClient: %v", err)
+	if err != nil {
+		klog.Warningf("get kubeconfig(%s) failed with error: %v", kubeconfig, err)
+		if !os.IsNotExist(err) && err != rest.ErrNotInCluster {
+			return nil, fmt.Errorf("failed to get KubeClient: %v", err)
+		}
 	}
 
 	az := &azureprovider.Cloud{}
