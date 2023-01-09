@@ -35,8 +35,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 
-	"sigs.k8s.io/cloud-provider-azure/pkg/auth"
 	azure "sigs.k8s.io/cloud-provider-azure/pkg/provider"
+	auth "sigs.k8s.io/cloud-provider-azure/pkg/provider/config"
 )
 
 var (
