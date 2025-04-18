@@ -31,6 +31,9 @@ RUN if [ "$ARCH" = "arm64" ]; then \
       curl -Ls https://github.com/Azure/AZNFS-mount/releases/download/${aznfsVer}/aznfs-${aznfsVer}-1.x86_64.tar.gz | tar xvzf - -C / --keep-directory-symlink; \
     fi
 
+# download turbo aznfs package
+RUN curl -Ls https://raw.githubusercontent.com/andyzhangx/demo/refs/heads/master/aks/aznfs_2.1.0_amd64.tar.gz | tar xvzf - -C / --strip-components=1 --keep-directory-symlink
+
 # install azcopy
 RUN curl -Ls https://azcopyvnext-awgzd8g7aagqhzhe.b02.azurefd.net/releases/release-10.28.1-20250326/azcopy_linux_${ARCH}_10.28.1.tar.gz \
         | tar xvzf - --strip-components=1 -C /usr/local/bin/ --wildcards "*/azcopy"
@@ -47,6 +50,7 @@ COPY ${binary} /blobplugin
 
 COPY --from=builder --chown=root:root /opt/microsoft/aznfs /opt/microsoft/aznfs
 COPY --from=builder --chown=root:root /sbin/mount.aznfs /sbin/mount.aznfs
+COPY --from=builder --chown=root:root /sbin/aznfsclient /sbin/aznfsclient
 COPY --from=builder --chown=root:root /usr/sbin/aznfswatchdog /usr/sbin/aznfswatchdog
 COPY --from=builder --chown=root:root /usr/local/bin/azcopy /usr/local/bin/azcopy
 COPY --from=builder --chown=root:root /blobfuse-proxy /blobfuse-proxy
@@ -59,6 +63,10 @@ COPY ./pkg/blobfuse-proxy/install-proxy.sh /blobfuse-proxy/
 COPY ./pkg/blobfuse-proxy/install-proxy-rhcos.sh /blobfuse-proxy/
 COPY ./pkg/blobfuse-proxy/blobfuse-proxy.service /blobfuse-proxy/
 COPY ./_output/${ARCH}/blobfuse-proxy /blobfuse-proxy/
+
+RUN mkdir /opt/microsoft/aznfs/data/
+RUN cp /opt/microsoft/aznfs/sample-turbo-config.yaml /opt/microsoft/aznfs/data/sample-turbo-config.yaml
+RUN chmod +x /opt/microsoft/aznfs/*.sh
 
 RUN chmod +x /blobfuse-proxy/init.sh && \
   chmod +x /blobfuse-proxy/install-proxy-rhcos.sh && \
