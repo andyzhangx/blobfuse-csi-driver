@@ -189,16 +189,51 @@ If IP was migrated successfully, you should find logs like:
 > If the issue is related to the Blobfuse2 binary crashing resulting in a `transport endpoint not connected` error:
 
  - Collect the crash stack trace files from the `$HOME/.blobfuse2/` directory on the node. Multiple trace files may exist if there were multiple crashes:
- ```console
- ls $HOME/.blobfuse2/*.trace
- ```
- > Each trace file follows the naming convention `<mount-path>.<pid>.trace`. Share the relevant trace file(s) for further investigation.
 
- - If the issue persists, enable Blobfuse2 debug logging by setting `--log-level=LOG_DEBUG` in `mountOptions` of the StorageClass (dynamic provisioning) or Persistent Volume (static provisioning), reproduce the issue, and share the debug logs:
- ```yaml
- mountOptions:
-   - --log-level=LOG_DEBUG
- ```
+   ```console
+   ls $HOME/.blobfuse2/*.trace
+   ```
+
+   > Each trace file follows the naming convention `<mount-path>.<pid>.trace`. Share the relevant trace file(s) for further investigation.
+
+ - If the issue persists, enable Blobfuse2 debug logging by setting `--log-level=LOG_DEBUG` in `mountOptions`, reproduce the issue, and share the debug logs:
+
+   - **Dynamic provisioning** — set `mountOptions` in the StorageClass:
+
+     ```yaml
+     apiVersion: storage.k8s.io/v1
+     kind: StorageClass
+     metadata:
+       name: blob-fuse-debug
+     provisioner: blob.csi.azure.com
+     parameters:
+       skuName: Standard_LRS
+     mountOptions:
+       - --log-level=LOG_DEBUG
+     ```
+
+   - **Static provisioning** — set `mountOptions` in the PersistentVolume:
+
+     ```yaml
+     apiVersion: v1
+     kind: PersistentVolume
+     metadata:
+       name: pv-blob-debug
+     spec:
+       capacity:
+         storage: 10Gi
+       accessModes:
+         - ReadWriteMany
+       mountOptions:
+         - --log-level=LOG_DEBUG
+       csi:
+         driver: blob.csi.azure.com
+         volumeHandle: <unique-volume-id>
+         volumeAttributes:
+           containerName: <container-name>
+     ```
+
+   > Refer to [blobfuse2 mount options](https://github.com/Azure/azure-storage-fuse) for the full list of supported options.
 
 ### Tips
  - [Troubleshoot Azure Blob storage mount issues on AKS](http://aka.ms/blobmounterror)
